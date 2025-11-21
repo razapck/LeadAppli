@@ -1,0 +1,5 @@
+{
+  "name": "Gestion de Leads",
+  "description": "Application de génération de leads alimentée par l'IA utilisant Google Search Grounding pour trouver et qualifier des prospects commerciaux en temps réel.",
+  "requestFramePermissions": []
+}
