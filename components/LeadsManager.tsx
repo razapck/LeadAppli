@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ParsedLead } from '../types';
-import { Search, Plus, Trash2, Edit, Mail, Phone, Globe, Building2, Save, X, AlertCircle, Eye, Calendar, Hash } from 'lucide-react';
+import { Search, Plus, Trash2, Edit, Mail, Phone, Globe, Building2, Save, X, AlertCircle, Eye, Calendar, Hash, Filter } from 'lucide-react';
 
 interface LeadsManagerProps {
   leads: ParsedLead[];
@@ -9,8 +9,11 @@ interface LeadsManagerProps {
   onCreateLead: (lead: ParsedLead) => void;
 }
 
+type ScoreFilterType = 'all' | 'hot' | 'warm' | 'cold';
+
 const LeadsManager: React.FC<LeadsManagerProps> = ({ leads, onUpdateLead, onDeleteLead, onCreateLead }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [scoreFilter, setScoreFilter] = useState<ScoreFilterType>('all');
   
   // State for Edit/Create Modal
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -24,10 +27,18 @@ const LeadsManager: React.FC<LeadsManagerProps> = ({ leads, onUpdateLead, onDele
     name: '', description: '', email: '', phone: '', website: '', potentialScore: 50
   });
 
-  const filteredLeads = leads.filter(lead => 
-    lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredLeads = leads.filter(lead => {
+    const matchesSearch = 
+      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    let matchesScore = true;
+    if (scoreFilter === 'hot') matchesScore = lead.potentialScore >= 80;
+    else if (scoreFilter === 'warm') matchesScore = lead.potentialScore >= 50 && lead.potentialScore < 80;
+    else if (scoreFilter === 'cold') matchesScore = lead.potentialScore < 50;
+
+    return matchesSearch && matchesScore;
+  });
 
   const openCreateModal = () => {
     setEditingLead(null);
@@ -71,24 +82,79 @@ const LeadsManager: React.FC<LeadsManagerProps> = ({ leads, onUpdateLead, onDele
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
-          <input 
-            type="text"
-            placeholder="Rechercher dans mes leads..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg pl-9 pr-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-          />
+      <div className="flex flex-col gap-4">
+        {/* Header Actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+            <input 
+              type="text"
+              placeholder="Rechercher dans mes leads..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg pl-9 pr-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+          <button 
+            onClick={openCreateModal}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto justify-center"
+          >
+            <Plus className="w-4 h-4" />
+            Nouveau Lead
+          </button>
         </div>
-        <button 
-          onClick={openCreateModal}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Nouveau Lead
-        </button>
+
+        {/* Filter Bar */}
+        <div className="flex flex-wrap gap-2 items-center text-sm">
+          <div className="flex items-center gap-2 text-slate-400 mr-2">
+            <Filter className="w-4 h-4" />
+            <span className="hidden sm:inline">Filtrer par score:</span>
+          </div>
+          
+          <button
+            onClick={() => setScoreFilter('all')}
+            className={`px-3 py-1.5 rounded-full border transition-all ${
+              scoreFilter === 'all' 
+                ? 'bg-slate-700 text-white border-slate-600' 
+                : 'bg-transparent text-slate-400 border-slate-700 hover:border-slate-500'
+            }`}
+          >
+            Tous ({leads.length})
+          </button>
+          
+          <button
+            onClick={() => setScoreFilter('hot')}
+            className={`px-3 py-1.5 rounded-full border transition-all ${
+              scoreFilter === 'hot' 
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' 
+                : 'bg-transparent text-slate-400 border-slate-700 hover:border-emerald-500/30 hover:text-emerald-400'
+            }`}
+          >
+            Hot {'>'}80%
+          </button>
+
+          <button
+            onClick={() => setScoreFilter('warm')}
+            className={`px-3 py-1.5 rounded-full border transition-all ${
+              scoreFilter === 'warm' 
+                ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' 
+                : 'bg-transparent text-slate-400 border-slate-700 hover:border-amber-500/30 hover:text-amber-400'
+            }`}
+          >
+            Warm 50-79%
+          </button>
+
+          <button
+            onClick={() => setScoreFilter('cold')}
+            className={`px-3 py-1.5 rounded-full border transition-all ${
+              scoreFilter === 'cold' 
+                ? 'bg-slate-600/20 text-slate-300 border-slate-500/50' 
+                : 'bg-transparent text-slate-400 border-slate-700 hover:border-slate-500/30 hover:text-slate-300'
+            }`}
+          >
+            Cold {'<'}50%
+          </button>
+        </div>
       </div>
 
       {/* Table view */}
@@ -160,7 +226,9 @@ const LeadsManager: React.FC<LeadsManagerProps> = ({ leads, onUpdateLead, onDele
               ) : (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-slate-500">
-                    {searchTerm ? "Aucun lead ne correspond à la recherche." : "Aucun lead enregistré pour le moment."}
+                    {searchTerm || scoreFilter !== 'all' 
+                      ? "Aucun lead ne correspond à vos critères." 
+                      : "Aucun lead enregistré pour le moment."}
                   </td>
                 </tr>
               )}

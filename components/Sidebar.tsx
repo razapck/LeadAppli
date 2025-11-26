@@ -1,13 +1,21 @@
 import React from 'react';
-import { Database, Search, Bot } from 'lucide-react';
+import { Database, Search, Bot, Smartphone } from 'lucide-react';
 
 interface SidebarProps {
   currentView: 'scraping' | 'leads';
   onChangeView: (view: 'scraping' | 'leads') => void;
   savedLeadsCount: number;
+  showInstallButton: boolean;
+  onInstallClick: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, savedLeadsCount }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  currentView, 
+  onChangeView, 
+  savedLeadsCount,
+  showInstallButton,
+  onInstallClick
+}) => {
   return (
     <div className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen fixed left-0 top-0 z-50 hidden md:flex">
       <div className="p-6 border-b border-slate-800 flex items-center gap-3">
@@ -50,7 +58,17 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, savedLeads
         </button>
       </nav>
 
-      <div className="p-4 border-t border-slate-800">
+      <div className="p-4 space-y-4 border-t border-slate-800">
+        {showInstallButton && (
+          <button 
+            onClick={onInstallClick}
+            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2 px-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors shadow-lg shadow-emerald-500/20 animate-pulse-once"
+          >
+            <Smartphone className="w-4 h-4" />
+            Installer l'App
+          </button>
+        )}
+
         <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
           <p className="text-xs text-slate-400 leading-relaxed">
             <span className="text-blue-400 font-semibold">Astuce :</span> Sauvegardez vos leads trouvés pour les retrouver dans l'onglet "Mes Leads".
